@@ -39,6 +39,7 @@ class ConcreteMaterialInputs(tk.Frame):
         self.n_col = 3
         self.n_row = 4
         self.controller = controller
+        
     
         material_label = tk.Label(self, text="Concrete Material Input", font=MEDIUM_FONT)
         material_label.grid(row=0, column=0)

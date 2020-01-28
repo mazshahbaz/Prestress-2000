@@ -17,13 +17,12 @@ from Fonts import LARGE_FONT as LARGE_FONT
 from Fonts import MEDIUM_FONT as MEDIUM_FONT
 from Fonts import SMALL_FONT as SMALL_FONT
 import Materials_Frames as MF
+import Sections as sections
 
 #LARGE_FONT = ("Verdana", 12)
 #MEDIUM_FONT = ("Verdana", 10)
 #SMALL_FONT = ("Verdana", 8)
 style.use('ggplot')                         #can also use 'dark_background'
-
-
 
 
 
@@ -77,6 +76,9 @@ class Prestress2000(tk.Tk):
         root represents the main frame in our window. we inherit tk.TK in the class and then initalize it
         so that we can use all the functionality within our objects. when prestress2000 is called 'root'
         is what creates the tkinter window
+        
+        
+        UPDATE ME, expalin the initializations and methods?
         """
         tk.Tk.__init__(self)                                    #Opens the application, and allows use of tk methods
 #        tk.Tk.iconbitmap(self,default='clienticon.ico')        #Should be 16*16 the icon for our application! use GIMP to make .ico files
@@ -85,21 +87,28 @@ class Prestress2000(tk.Tk):
         #initialize number of rows and columns on this frame
         self.n_col = 3
         self.n_row = 3
-        
+        #Initalize Pages
         root = tk.Frame(self)                                   #Creating the MAIN FRAME wilth the application as the parent
         root.grid(row=0, column=0)                              #fill the main frame to fit entire window
 
         root.grid_rowconfigure(0, weight=1)                     #configure the grid in the main frame, 0 is the size of the row, weight represnts importance
         root.grid_columnconfigure(0, weight=1)                  #configure the grid in the main frame, 0 is the size of the column, weight represnts importance
-
-        self.frames = {}                                        #Dictionary to contain all the frame created in our GUI, Each page is a frame
         
+        #Initalize Option Menus, these are used to update OM's effeciently. items in list structured as [OM , Var]
+        self.materials_option_menus = []
+        self.section_option_menus = []
+        
+        
+        #Initalize Pages
+        self.frames = {}                                        #Dictionary to contain all the frame created in our GUI, Each page is a frame
         for F in (StartPage, PageOne, PageTwo, PageThree):
             frame = F(root, self)                               #Creating the Start Page
             self.frames[F] = frame                              #Placeing startpage in the frames dictionary
-            frame.grid(row=0, column=0, sticky="nsew")          #Displaying the stratpage
+            frame.grid(row=0, column=0, sticky="nsew")          #Displaying the startpage
+        
+        
+        self.show_frame(StartPage)                              #Displaying the stratpage
 
-        self.show_frame(StartPage)
 
     def show_frame(self, cont):
         """
@@ -107,16 +116,16 @@ class Prestress2000(tk.Tk):
         """
         frame = self.frames[cont]
         frame.tkraise()
-        
-    def get_materials_list(self):
-        return self.frames[PageOne].get_materials_list()
-    
+           
     
     def update_dropdown(self, new_choices, option_menu, var):
         """
         This function updates the materials OptionMenu on the cross section page. 
         whenever a material is added on PageOne (add_concrete_material, add_concrete_steel)
         this function is called.
+        
+        
+        UPDATE ME
         """
         OptionMenu = option_menu["menu"]
         OptionMenu.delete(0, 'end')
@@ -124,11 +133,28 @@ class Prestress2000(tk.Tk):
             print(new_choices)
             OptionMenu.add_command(label=choice, 
                                    command= lambda value=choice: var.set(value))
+            
+    def get_materials_list(self):
+        return self.frames[PageOne].get_materials_list()
     
+    def update_material_dropdown(self):
+        """
+        This function updates the materials OptionMenu on the cross section page. 
+        whenever a material is added on PageOne (add_concrete_material, add_concrete_steel)
+        this function is called.
+        
+        
+        UPDATE ME
+        """
+        new_choices = self.get_materials_list()
+        for om , var in self.materials_option_menus:
+           self.update_dropdown(new_choices, om, var)
 
-
-
-
+    
+    def add_material_om(self, om, var):
+        self.materials_option_menus.append([om, var])
+        
+    
         
 class StartPage(tk.Frame):
 
@@ -191,6 +217,9 @@ def material_properties(parent, name):
 class PageOne(tk.Frame):
     """
     Material Definitions
+    
+    
+    UPDATE ME
     """
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -250,24 +279,34 @@ class PageOne(tk.Frame):
             self.concrete_input_frame.tkraise()
         
     def add_concrete_material(self, name, fc, fu, Ec, eu):
+        """
+        Adds a concrete material to the materials listbox, and updates 
+        ALL optionmenus that list materials from the listbox
+        located on the materials page [PageTwo]
+        """
         if name in self.materials_dictionary:
             return
         else:
             self.materials_dictionary[name] = MF.Concrete_Material(name, fc, fu, Ec, eu)
             self.Lb.insert(tk.END, name)
-            self.controller.frames[PageTwo].update_material_dropdown()                             #Updates the dropdown menu on PgaeTwo
+            self.controller.update_material_dropdown()
             
     def add_steel_material(self, name, fy, fu, Es, ey, eu):
+        """
+        Adds a concrete material to the materials listbox, and updates 
+        ALL optionmenus that list materials from the listbox
+        located on the materials page [PageTwo]
+        """
         if name in self.materials_dictionary:
             return
         else:
             self.materials_dictionary[name] = MF.Steel_Material(name, fy, fu, Es, ey, eu)
             self.Lb.insert(tk.END, name)
-            self.controller.frames[PageTwo].update_material_dropdown()                           #Updates the dropdown menu on PgaeTwo
+            self.controller.update_material_dropdown() 
             
     def get_materials_list(self):
         """
-        returns an updated list of all materials
+        Returns an updated list of all materials as a lsit.
         """
         materials_list = self.materials_dictionary.keys()
         return list(materials_list)
@@ -302,41 +341,10 @@ class PageTwo(tk.Frame):
         page_label.grid(row=1, column=0)
         
         
+        self.rectangle_input_frame = sections.RectangleSectionInputs(self, self.controller)
+        self.rectangle_input_frame.grid(row=2, column=0)
         
-        
-        
-        
-        
-        
-        self.material = tk.StringVar(self)                                                          #Initialize the variable used in material_dropdown            
-        self.material.set("Select")
-        self.material.trace('w', self.option_select)
-        
-        self.materials_list = self.controller.get_materials_list()                                             #Initialize the options used in material_dropdown
-        print(self.materials_list)
-        self.material_dropdown = tk.OptionMenu(self, self.material, self.materials_list)
-        self.material_dropdown.grid(row=2, column=0)
-#        
-#    def update_material_dropdown(self):
-#        """
-#        This function updates the materials OptionMenu on the cross section page. 
-#        whenever a material is added on PageOne (add_concrete_material, add_concrete_steel)
-#        this function is called.
-#        """
-#        OptionMenu = self.material_dropdown["menu"]
-#        OptionMenu.delete(0, 'end')
-#        new_choices = self.get_materials_list()
-#        for choice in new_choices:
-#            print(new_choices)
-#            OptionMenu.add_command(label=choice, 
-#                                   command= lambda value=choice: self.material.set(value))
     
-    def option_select(self, *args):
-        print(self.material.get())
-    
-#    def get_materials_list(self):
-#        return self.controller.frames[PageOne].get_materials_list()
-        
         
         
         
