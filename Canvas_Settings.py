@@ -10,5 +10,7 @@ Canvas Paramaters
 """
 
 #Canvas Size
-canvas_width = 500
-canvas_height = 500
+canvas_width = 400
+canvas_height = 300
+center_x = canvas_width//2
+center_y = canvas_height//2

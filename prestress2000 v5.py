@@ -18,6 +18,7 @@ from Fonts import MEDIUM_FONT as MEDIUM_FONT
 from Fonts import SMALL_FONT as SMALL_FONT
 import Materials_Frames as MF
 import Sections as sections
+import Canvas_Settings
 
 #LARGE_FONT = ("Verdana", 12)
 #MEDIUM_FONT = ("Verdana", 10)
@@ -325,24 +326,78 @@ class PageOne(tk.Frame):
 #    materials_list = controller.frames[PageOne].materials_dictionary
 #    return list(materials_list)
 
-        
+    
+"""
+To do, implement add section button/function, and implement drawing on the canvas!
+"""
+    
 class PageTwo(tk.Frame):
     
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         #initialize number of rows and columns on this frame
         self.n_col = 3
-        self.n_row = 3
+        self.n_row = 4
         self.controller = controller
+        self.canvas_height = Canvas_Settings.canvas_height
+        self.canvas_width = Canvas_Settings.canvas_width
         
+        #General Page Parameters
         NavigationBar(self, controller)
-        
         page_label = tk.Label(self, text="Cross-Section Page", font=LARGE_FONT)
         page_label.grid(row=1, column=0)
         
+        # Initalize Sections Data
+        self.sections = {}
+        self.inputs_frames ={}
+        self.section_types = ["Rectangle",
+                              "AASHTO"]
         
-        self.rectangle_input_frame = sections.RectangleSectionInputs(self, self.controller)
-        self.rectangle_input_frame.grid(row=2, column=0)
+        #Define Section input Frames and place them in the inputs_frames dictionary
+        self.section_input_frames = {"Rectangle": sections.RectangleSectionInputs(self, self.controller),
+                  "AASHTO": sections.AASHTOSectionInputs(self, self.controller)}
+        for frame in self.section_input_frames.values():
+            frame.grid(row=3, column=0)
+        
+        
+        #Section Type Selection, will raise the input_frame of the section type selected in the option menu
+        section_type = tk.StringVar(self)
+        section_type.set("Select")
+        self.section_OM = tk.OptionMenu(self, section_type, *self.section_types, command = lambda section_type: self.show_frame(section_type))
+        self.section_OM.grid(row=2, column=0)
+        
+        
+        #Sections Listbox, created sections are added here
+        sections_LB_frame = tk.Frame(self)
+        sections_LB_frame.grid(row=3, column=1, padx=10)
+        self.Lb = tk.Listbox(sections_LB_frame)
+        self.Lb.grid(row=3, column=1)
+        
+#        #Add Section Button
+#        add_section_button = tk.Button(self, text="Add Material", 
+#                                command=lambda: self.create_section(material_name_entry.get(), fc_entry.get(), fu_entry.get(), Ec_entry.get(), eu_entry.get()))
+#        add_section_button.grid(row=6, column=0)
+        
+        
+        #initalize Canvas
+        canvas=tk.Canvas(self, width=self.canvas_width, height=self.canvas_height, background="white")
+        canvas.grid(row=4,column=0, pady=10, padx=10)
+        
+        
+#    def create_section(self, section_type):
+#        if 
+    
+    def show_frame(self, section_type):
+        """
+        bring the desired frame to the front
+        """
+        print(section_type)
+        frame = self.section_input_frames[section_type] 
+        frame.tkraise()
+
+        
+        
+        
         
     
         
