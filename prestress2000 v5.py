@@ -345,11 +345,11 @@ class PageTwo(tk.Frame):
         #General Page Parameters
         NavigationBar(self, controller)
         page_label = tk.Label(self, text="Cross-Section Page", font=LARGE_FONT)
-        page_label.grid(row=1, column=0)
+        page_label.grid(row=1, column=0, sticky = "W", padx=10)
         
         # Initalize Sections Data
         self.sections = {}
-        self.inputs_frames ={}
+        self.section_input_frames ={}
         self.section_types = ["Rectangle",
                               "AASHTO"]
         
@@ -357,14 +357,14 @@ class PageTwo(tk.Frame):
         self.section_input_frames = {"Rectangle": sections.RectangleSectionInputs(self, self.controller),
                   "AASHTO": sections.AASHTOSectionInputs(self, self.controller)}
         for frame in self.section_input_frames.values():
-            frame.grid(row=3, column=0)
+            frame.grid(row=3, column=0, sticky = "NSEW", padx=10, pady=3)
         
         
         #Section Type Selection, will raise the input_frame of the section type selected in the option menu
-        section_type = tk.StringVar(self)
-        section_type.set("Select")
-        self.section_OM = tk.OptionMenu(self, section_type, *self.section_types, command = lambda section_type: self.show_frame(section_type))
-        self.section_OM.grid(row=2, column=0)
+        self.section_type = tk.StringVar(self)
+        self.section_type.set("Select")
+        self.section_OM = tk.OptionMenu(self, self.section_type, *self.section_types, command =  lambda section_type: self.show_frame(self.section_type.get()))
+        self.section_OM.grid(row=2, column=0, sticky = "W", padx=10, pady=10)
         
         
         #Sections Listbox, created sections are added here
@@ -373,27 +373,81 @@ class PageTwo(tk.Frame):
         self.Lb = tk.Listbox(sections_LB_frame)
         self.Lb.grid(row=3, column=1)
         
-#        #Add Section Button
-#        add_section_button = tk.Button(self, text="Add Material", 
-#                                command=lambda: self.create_section(material_name_entry.get(), fc_entry.get(), fu_entry.get(), Ec_entry.get(), eu_entry.get()))
-#        add_section_button.grid(row=6, column=0)
+        #Add Section Button
+        add_section_button = tk.Button(self, text="Add Material", 
+                                command=lambda: self.add_section())
+        add_section_button.grid(row=4, column=0, sticky = "W", padx=10)
         
+        #Remove Section Button
+        remove_section_button = tk.Button(self, text="Remove Material", 
+                            command=lambda: self.remove_section(self.Lb.get(tk.ANCHOR)))
+        remove_section_button.grid(row=4, column=1, pady=10)
         
         #initalize Canvas
-        canvas=tk.Canvas(self, width=self.canvas_width, height=self.canvas_height, background="white")
-        canvas.grid(row=4,column=0, pady=10, padx=10)
+        self.canvas=tk.Canvas(self, width=self.canvas_width, height=self.canvas_height, background="white")
+        self.canvas.grid(row=5,column=0, pady=10, padx=10)
         
         
 #    def create_section(self, section_type):
 #        if 
+    
+    def get_input_frame(self, section_type):
+        return self.section_input_frames[section_type]
+    
     
     def show_frame(self, section_type):
         """
         bring the desired frame to the front
         """
         print(section_type)
-        frame = self.section_input_frames[section_type] 
+        frame = self.get_input_frame(section_type)
         frame.tkraise()
+        
+    def add_section(self):
+        """
+        Creates a a cross-section based on the section_type selected
+        the inputs are obtained from the section_input_frame, and a the corrseponding section is created
+        
+        The Created Section is then:
+            - Added tp the sections dictionary in the Page2 Class
+            - Added to the Sections Listbox
+        
+        Section_input_frame: The frame in which the user inputs the desired sections properties, based on the section type selected
+        section: The created section object
+        
+        NEED TO ADD FUNCTIONALITY TP UPDATE ALL future optionmenus that reference this one 
+        """
+        section_input_frame = self.get_input_frame(self.section_type.get())
+        section = section_input_frame.create_section()
+        section_name = section.name
+        if section_name in self.sections:
+           print("This name has already been used for a section")
+        else:
+            self.sections[section_name] = section
+            self.Lb.insert(tk.END, section.name)
+            self.draw_section(section.coordinates)
+    
+    def draw_section(self, coordinates):
+        self.canvas.delete("all")
+        coord_list = [point for points in coordinates for point in points]
+        print(coord_list)
+        self.canvas.create_polygon(coord_list,
+                                   fill = "black")
+#        i=0
+#        while i<len(coordinates):
+#            if i == len(coordinates)-1:
+#                self.canvas.create_oval
+#                line = [coordinates[i][0], coordinates[i][1], coordinate[0][0], coordinate[0][1]]
+#            else:
+#                line = [coordinates[i][0], coordinates[i][1],coordinate[i+1][0], coordinate[i+1][1]]
+            
+        
+    def remove_section(self, section):
+        if section in self.sections:
+            self.sections.pop(section)
+            self.Lb.delete(tk.ANCHOR)
+
+        
 
         
         
