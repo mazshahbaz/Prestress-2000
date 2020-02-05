@@ -432,7 +432,7 @@ class PageTwo(tk.Frame):
         coord_list = [point for points in coordinates for point in points]
         print(coord_list)
         self.canvas.create_polygon(coord_list,
-                                   fill = "black")
+                                   )
 #        i=0
 #        while i<len(coordinates):
 #            if i == len(coordinates)-1:
