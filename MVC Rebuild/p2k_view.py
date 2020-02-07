@@ -49,12 +49,10 @@ class PageOne(tk.Frame):
         label.grid(row=1, column=0, sticky="W")
         
         #Materials inputs Frames
-        self.input_frames = {}
-        for F in [ConcreteMaterialInput, SteelMaterialInput]:
-            frame = F(parent=self, controller=self.controller)
-            self.input_frames[F] = frame
-            frame.grid(row=3, column=0, sticky="NSEW")
-            
+        self.input_frames = {"Concrete":ConcreteMaterialInput(parent=self, controller=self.controller),
+                             "Steel":SteelMaterialInput(parent=self, controller=self.controller)}
+        for F in self.input_frames.values():
+            F.grid(row=3, column=0, sticky="NSEW")
             
         #Material Selection Dropdown
         material = tk.StringVar(self)
@@ -64,14 +62,42 @@ class PageOne(tk.Frame):
                                                command = lambda material: self.show_frame(self.get_material_input_frame(material)))
         self.material_dropdown.grid(row=2, column=0)
         
+        #Material Listbox
+        Lb_frame = tk.Frame(self)
+        Lb_frame.grid(row=3, column=1, padx=10)
+        self.Lb = tk.Listbox(Lb_frame)
+        self.Lb.grid(row=0, column=0)
+        self.controller.model.materials.addCallback(self.update_listbox)
+        
+#        def selected_material(evt):
+#            index = evt.widget.curselection()[0]
+#            name = self.Lb.get(index)
+#            print(name)
+#            material_properties(self, name)
+#                   
+#        self.Lb.bind('<<ListboxSelect>>', selected_material)
+#        remove_button = tk.Button(added_materials, text="Remove Material", 
+#                            command=lambda: remove_material(self, self.Lb.get(tk.ANCHOR)))
+#        remove_button.grid(row=1, column=0)
+        
+        #Add Material Button
+        add_material_button = tk.Button(self, text="Add Material", command=lambda: controller.add_material(material.get()))
+        add_material_button.grid(row=4, column=0)   
+        
     def get_material_input_frame(self, material):
         if material == "Concrete":
-            return self.input_frames[ConcreteMaterialInput]
+            return self.input_frames["Concrete"]
         if material == "Steel":
-            return self.input_frames[SteelMaterialInput]
+            return self.input_frames["Steel"]
     
     def show_frame(self, frame):
         frame.tkraise()
+        
+    def update_listbox(self, data):
+        self.Lb.delete(0, tk.END)
+        for name in data.keys():
+            self.Lb.insert(tk.END, name)
+        
 
 
 class ConcreteMaterialInput(tk.Frame):
@@ -81,37 +107,43 @@ class ConcreteMaterialInput(tk.Frame):
         self.n_col = 3
         self.n_row = 4
         self.controller = controller
+        self.type = "Concrete"
+        
         
         material_label = tk.Label(self, text="Concrete Material Input", font=Fonts.MEDIUM_FONT)
         material_label.grid(row=0, column=0)
     
         material_name = tk.Label(self, text="Concrete Material Name:", font=Fonts.MEDIUM_FONT)
         material_name.grid(row=1, column=0)
-        material_name_entry = tk.Entry(self)
-        material_name_entry.grid(row=1, column=1)
-    
+        self.material_name_entry = tk.Entry(self)
+        self.material_name_entry.grid(row=1, column=1)
     
         fc_label = tk.Label(self, text="f'c (MPa):", font=Fonts.MEDIUM_FONT)
         fc_label.grid(row=2, column=0)
-        fc_entry = tk.Entry(self)
-        fc_entry.grid(row=2, column=1)
-    
+        self.fc_entry = tk.Entry(self)
+        self.fc_entry.grid(row=2, column=1)
     
         fu_label = tk.Label(self, text="f'u: (MPa)", font=Fonts.MEDIUM_FONT)
         fu_label.grid(row=3, column=0)
-        fu_entry = tk.Entry(self)
-        fu_entry.grid(row=3, column=1)
-        
+        self.fu_entry = tk.Entry(self)
+        self.fu_entry.grid(row=3, column=1)
         
         Ec_label = tk.Label(self, text="Ec: (MPa)", font=Fonts.MEDIUM_FONT)
         Ec_label.grid(row=4, column=0)
-        Ec_entry = tk.Entry(self)
-        Ec_entry.grid(row=4, column=1)
+        self.Ec_entry = tk.Entry(self)
+        self.Ec_entry.grid(row=4, column=1)
         
         eu_label = tk.Label(self, text="e'u:", font=Fonts.MEDIUM_FONT)
         eu_label.grid(row=5, column=0)
-        eu_entry = tk.Entry(self)
-        eu_entry.grid(row=5, column=1)
+        self.eu_entry = tk.Entry(self)
+        self.eu_entry.grid(row=5, column=1)
+        
+        def get_inputs(self):
+            return {"Name": self.material_name_entry.get(),
+                    "fc": self.fc_entry.get(),
+                    "fu": self.fu_entry.get(),
+                    "Ec": self.Ec_entry.get(),
+                    "eu": self.eu_entry.get()}
 
 class SteelMaterialInput(tk.Frame):
     def __init__(self, parent, controller):
@@ -120,42 +152,50 @@ class SteelMaterialInput(tk.Frame):
         self.n_col = 3
         self.n_row = 4
         self.controller = controller
+        self.type = "Steel"
     
         material_label = tk.Label(self, text="Steel Material Input", font=Fonts.MEDIUM_FONT)
         material_label.grid(row=0, column=0)
     
         material_name = tk.Label(self, text="Steel Material Name:", font=Fonts.MEDIUM_FONT)
         material_name.grid(row=1, column=0)
-        material_name_entry = tk.Entry(self)
-        material_name_entry.grid(row=1, column=1)
-    
+        self.material_name_entry = tk.Entry(self)
+        self.material_name_entry.grid(row=1, column=1)
     
         fy_label = tk.Label(self, text="fy: (MPa)", font=Fonts.MEDIUM_FONT)
         fy_label.grid(row=2, column=0)
-        fy_entry = tk.Entry(self)
-        fy_entry.grid(row=2, column=1)
-    
+        self.fy_entry = tk.Entry(self)
+        self.fy_entry.grid(row=2, column=1)
     
         fu_label = tk.Label(self, text="fu: (MPa)", font=Fonts.MEDIUM_FONT)
         fu_label.grid(row=3, column=0)
-        fu_entry = tk.Entry(self)
-        fu_entry.grid(row=3, column=1)
-        
+        self.fu_entry = tk.Entry(self)
+        self.fu_entry.grid(row=3, column=1)
         
         Es_label = tk.Label(self, text="Es: (MPa)", font=Fonts.MEDIUM_FONT)
         Es_label.grid(row=4, column=0)
-        Es_entry = tk.Entry(self)
-        Es_entry.grid(row=4, column=1)
+        self.Es_entry = tk.Entry(self)
+        self.Es_entry.grid(row=4, column=1)
         
         ey_label = tk.Label(self, text="e'y:", font=Fonts.MEDIUM_FONT)
         ey_label.grid(row=5, column=0)
-        ey_entry = tk.Entry(self)
-        ey_entry.grid(row=5, column=1)
+        self.ey_entry = tk.Entry(self)
+        self.ey_entry.grid(row=5, column=1)
         
         eu_label = tk.Label(self, text="e'u:", font=Fonts.MEDIUM_FONT)
         eu_label.grid(row=6, column=0)
-        eu_entry = tk.Entry(self)
-        eu_entry.grid(row=6, column=1)
+        self.eu_entry = tk.Entry(self)
+        self.eu_entry.grid(row=6, column=1)
+        
+    def get_inputs(self):
+        return {"Name": self.material_name_entry.get(),
+                "fc": self.fy_entry.get(),
+                "fu": self.fu_entry.get(),
+                "Ec": self.Es_entry.get(),
+                "ey": self.Es_entry.get(),
+                "eu": self.eu_entry.get()}
+
+        
 
 #class ConcreteMaterialInput(tk.Frame):       
 #    def __init__(self, parent, controller):

@@ -5,13 +5,13 @@ Created on Sun Feb  2 14:29:18 2020
 @author: Mazen
 """
 import tkinter as tk
-import p2k_model as Model
+import p2k_model as M
 import p2k_view as v
    
 
 class Controller(tk.Tk):
     def __init__(self):
-        self.model = Model.Model()
+        self.model = M.Model()
         tk.Tk.__init__(self)
         tk.Tk.wm_title(self, "PreStress-2000")
         root = tk.Frame(self)                                                    #This is the mainframe where everything goes
@@ -36,13 +36,6 @@ class Controller(tk.Tk):
         """
         frame = frames[F]
         frame.tkraise()
-        
-    def show_material_input_frame(self, frames, F):
-        """
-        bring the desired frame (F) to the front
-        """
-        frame = frames[F]
-        frame.tkraise()
     
     def get_material_types(self):
         return self.model.materials_types.data
@@ -52,6 +45,18 @@ class Controller(tk.Tk):
     
     def get_sections_dic(self):
         return self.model.sections.data
+    
+    def add_material(self, material_type):
+        material_type = material_type
+        PageOne = self.frames[v.PageOne]
+        input_frame = PageOne.input_frames[material_type]
+        inputs = input_frame.get_inputs()
+        if material_type == "Concrete":
+            new_material = M.Concrete_Material(inputs)
+        if material_type == "Steel":
+            new_material = M.Steel_Material(inputs)
+        material_name = inputs["Name"]
+        M.Model.materials.update(material_name, new_material)
         
         
 

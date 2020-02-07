@@ -16,18 +16,19 @@ class Observable:
         self.callbacks = {}
         
     def addCallback(self, func):
-        self.callback[func] = 1
+        self.callbacks[func] = 1
         
     def delCallback(self, func):
-        del self.callback[func]
+        del self.callbacks[func]
         
     def doCallbacks(self):
         for func in self.callbacks:
             func(self.data)
             
-    def update(self, data):
-        self.data = data
-        self.doCallbacks()
+    def addData(self, value):
+        if value.name not in self.data.keys():
+            self.data[value.name] = value
+            self.doCallbacks()
                        
 
         
@@ -37,13 +38,38 @@ class Model():
         self.materials = Observable({})
         self.sections = Observable({})
         self.girders = Observable({})
-        return
+        
+    def create_material(self, material_type, inputs):
+        if material_type == "Concrete":
+            material = Concrete_Material(inputs)
+        elif material_type == "Steel":
+            material = Steel_Material(inputs)
+        self.materials.addData(material)
     
     
 class materials():
     def __init__(self, master):
-        self.materials_types = []
+        self.materials = {}
+        
+        
 
+class Concrete_Material():
+    def __init__(self,name, fc, fu, Ec, eu):
+        self.type = "Concrete"
+        self.name = name
+        self.fc = fc
+        self.fu = fu
+        self.Ec = Ec
+        self.eu = eu        
 
+class Steel_Material():
+    def __init__(self,name, fy, fu, Es, ey, eu):
+        self.type = "Steel"
+        self.name = name
+        self.fy = fy
+        self.fu = fu
+        self.Es = Es
+        self.ey = ey
+        self.eu = eu 
 
 #if __name__ == "__main__":
